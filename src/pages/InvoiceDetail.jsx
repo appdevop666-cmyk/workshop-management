@@ -112,7 +112,7 @@ export default function InvoiceDetail() {
               <Wrench className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{companySettings?.company_name || 'BengkelSync'}</h2>
+              <h2 className="text-xl font-bold text-gray-900">{companySettings?.company_name || 'Workshop Management'}</h2>
               <p className="text-sm text-gray-500 mt-1 whitespace-pre-line">{companySettings?.company_address || 'Jl. Sudirman No. 123, Jakarta'}</p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function InvoiceDetail() {
         {/* Footer */}
         <div className="border-t border-gray-200 pt-8 text-center">
           <p className="text-sm text-gray-900 mb-2">Metode Pembayaran: <strong className="font-bold">{companySettings?.payment_method || 'Transfer Bank'}</strong></p>
-          <p className="text-xs text-gray-500 italic">Terima kasih telah mempercayakan kendaraan Anda pada {companySettings?.company_name || 'BengkelSync'}.</p>
+          <p className="text-xs text-gray-500 italic">Terima kasih telah mempercayakan kendaraan Anda pada {companySettings?.company_name || 'Workshop Management'}.</p>
         </div>
 
       </div>

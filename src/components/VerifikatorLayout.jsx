@@ -21,7 +21,7 @@ export default function VerifikatorLayout({ children }) {
       {/* Sidebar */}
       <aside className="w-64 bg-[#F8F9FA] border-r border-gray-200 flex flex-col print:hidden">
         <div className="p-6">
-          <h1 className="text-xl font-bold tracking-tight text-black">BengkelSync</h1>
+          <h1 className="text-xl font-bold tracking-tight text-black">Workshop Management</h1>
           <p className="text-xs text-gray-500 mt-1 font-medium">Workshop Management</p>
         </div>
         

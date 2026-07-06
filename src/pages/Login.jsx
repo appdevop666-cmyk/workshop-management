@@ -30,7 +30,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded shadow-sm border border-gray-200">
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">BengkelSync</h1>
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Workshop Management</h1>
         
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded text-sm">
