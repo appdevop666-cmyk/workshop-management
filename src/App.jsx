@@ -57,6 +57,20 @@ function App() {
     fetchCompanySettings();
   }, []);
 
+  // Ping database otomatis saat aplikasi pertama kali dimuat 
+  // agar project Supabase tidak masuk ke mode pause.
+  useEffect(() => {
+    const pingHealthz = async () => {
+      try {
+        await supabase.from('healthz').insert([{}]);
+        console.log('Database keep-alive ping sent.');
+      } catch (err) {
+        console.error('Failed to ping database:', err);
+      }
+    };
+    pingHealthz();
+  }, []);
+
   return (
     <Router>
       <GlobalNotifications />
