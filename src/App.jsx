@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from './lib/supabase';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { Toaster } from 'react-hot-toast';
+import { useRealtimeNotifications } from './hooks/useRealtimeNotifications';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -26,6 +29,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
+// Komponen pembantu untuk menjalankan hook secara global
+const GlobalNotifications = () => {
+  useRealtimeNotifications();
+  return null;
+};
+
 function App() {
   const checkSession = useAuthStore(state => state.checkSession);
 
@@ -38,8 +47,20 @@ function App() {
     };
   }, [checkSession]);
 
+  useEffect(() => {
+    const fetchCompanySettings = async () => {
+      const { data } = await supabase.from('company_settings').select('company_name').single();
+      if (data?.company_name) {
+        document.title = data.company_name;
+      }
+    };
+    fetchCompanySettings();
+  }, []);
+
   return (
     <Router>
+      <GlobalNotifications />
+      <Toaster position="top-right" />
       <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
