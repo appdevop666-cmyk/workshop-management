@@ -50,12 +50,12 @@ export function useRealtimeNotifications() {
       )
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
         (payload) => {
           const newProfile = payload.new;
-          if (newProfile.current_session_token) {
+          if (newProfile.id === user.id && newProfile.current_session_token) {
             const localToken = localStorage.getItem('ws_session_token');
-            if (localToken !== newProfile.current_session_token) {
+            if (localToken && localToken !== newProfile.current_session_token) {
               // Token mismatch! Someone logged in elsewhere.
               toast.error('Akun Anda telah login di perangkat lain. Anda akan dikeluarkan.', {
                 duration: 5000,
