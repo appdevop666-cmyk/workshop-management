@@ -1,57 +1,77 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 
+const getAssignedRole = (email) =>
+  email === 'manager@gmail.com' ? 'verifikator' : 'mechanic';
+
+const fetchProfile = async (userId) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role, current_session_token')
+    .eq('id', userId)
+    .maybeSingle();
+  return { profileData: data, profileError: error };
+};
+
+const createProfile = async (userId, email) => {
+  const role = getAssignedRole(email);
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert([{ id: userId, full_name: email, role }])
+    .select('role, current_session_token')
+    .single();
+  return { profileData: data, profileError: error };
+};
+
+const setSessionToken = async (userId) => {
+  const token = crypto.randomUUID();
+  localStorage.setItem('ws_session_token', token);
+  await supabase
+    .from('profiles')
+    .update({ current_session_token: token })
+    .eq('id', userId);
+  return token;
+};
+
 export const useAuthStore = create((set) => ({
   user: null,
-  role: null, // 'mechanic', 'verifikator', 'qc'
-  loading: true, // Ubah ke true agar tidak langsung redirect saat refresh
+  role: null,
+  loading: true,
   error: null,
 
   login: async (email, password, force = false) => {
     set({ loading: true, error: null });
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
+      if (!authData.session) throw new Error('Sesi tidak valid. Pastikan email sudah dikonfirmasi.');
+
+      // Sinkronisasi sesi agar kueri DB memakai JWT yang benar
+      await supabase.auth.setSession({
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
       });
 
-      if (authError) throw authError;
+      let { profileData } = await fetchProfile(authData.user.id);
 
-      let { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, current_session_token')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError || !profileData) {
-        console.warn('Profile not found, creating default profile...');
-        const assignedRole = authData.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic';
-        const { data: newProfile, error: insertError } = await supabase
-          .from('profiles')
-          .insert([{ id: authData.user.id, full_name: authData.user.email, role: assignedRole }])
-          .select('role')
-          .single();
-        
-        if (!insertError && newProfile) {
-          profileData = newProfile;
-        }
+      if (!profileData) {
+        const result = await createProfile(authData.user.id, authData.user.email);
+        profileData = result.profileData;
       }
 
-      const role = profileData?.role || (authData.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic');
-      
-      if (!force && profileData?.current_session_token) {
+      const role = profileData?.role || getAssignedRole(authData.user.email);
+      const localToken = localStorage.getItem('ws_session_token');
+
+      // Cek apakah ada sesi aktif di perangkat LAIN
+      // (ada token di DB, tapi bukan milik browser ini)
+      if (!force && profileData?.current_session_token && localToken !== profileData.current_session_token) {
         set({ loading: false });
         return { requireForce: true, user: authData.user, role };
       }
 
-      const sessionToken = crypto.randomUUID();
-      localStorage.setItem('ws_session_token', sessionToken);
-      
-      await supabase
-        .from('profiles')
-        .update({ current_session_token: sessionToken })
-        .eq('id', authData.user.id);
-      
+      // Buat token sesi baru untuk browser ini
+      await setSessionToken(authData.user.id);
+
       set({ user: authData.user, role, loading: false });
       return { user: authData.user, role };
     } catch (err) {
@@ -61,7 +81,17 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
-    const state = set; // Not accessible here directly, wait, we can just use the store state later, or we can assume supabase logout is enough
+    // Ambil sesi saat ini untuk mendapatkan user ID
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    // Hapus token dari DB agar akun bisa login bebas di perangkat lain
+    if (session?.user?.id) {
+      await supabase
+        .from('profiles')
+        .update({ current_session_token: null })
+        .eq('id', session.user.id);
+    }
+
     localStorage.removeItem('ws_session_token');
     await supabase.auth.signOut();
     set({ user: null, role: null });
@@ -69,41 +99,55 @@ export const useAuthStore = create((set) => ({
 
   checkSession: () => {
     set({ loading: true });
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        set({ user: null, role: null, loading: false });
+        return;
+      }
+
       if (session?.user) {
-        let { data: profileData } = await supabase
-          .from('profiles')
-          .select('role, current_session_token')
-          .eq('id', session.user.id)
-          .single();
+        const { profileData } = await fetchProfile(session.user.id);
 
         if (!profileData) {
-          const assignedRole = session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic';
-          const { data: newProfile } = await supabase
-            .from('profiles')
-            .insert([{ id: session.user.id, full_name: session.user.email, role: assignedRole }])
-            .select('role, current_session_token')
-            .single();
-          profileData = newProfile;
+          // Profil belum ada, buat baru
+          const { profileData: newProfile } = await createProfile(session.user.id, session.user.email);
+          await setSessionToken(session.user.id);
+          set({
+            user: session.user,
+            role: newProfile?.role || getAssignedRole(session.user.email),
+            loading: false,
+          });
+          return;
         }
 
         const localToken = localStorage.getItem('ws_session_token');
-        if (profileData?.current_session_token && localToken !== profileData.current_session_token) {
-          // Token mismatch, someone else logged in
-          await supabase.auth.signOut();
+
+        // Jika DB tidak punya token → ini sesi aktif, pasangkan token baru
+        if (!profileData.current_session_token) {
+          await setSessionToken(session.user.id);
+          set({
+            user: session.user,
+            role: profileData.role || getAssignedRole(session.user.email),
+            loading: false,
+          });
+          return;
+        }
+
+        // Token ada tapi tidak cocok → ada yang login di tempat lain
+        if (localToken !== profileData.current_session_token) {
           localStorage.removeItem('ws_session_token');
+          await supabase.auth.signOut();
           set({ user: null, role: null, loading: false });
           return;
         }
-          
-        set({ 
-          user: session.user, 
-          role: profileData?.role || (session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic'),
-          loading: false 
+
+        // Token cocok → sesi valid
+        set({
+          user: session.user,
+          role: profileData.role || getAssignedRole(session.user.email),
+          loading: false,
         });
-      } else {
-        set({ user: null, role: null, loading: false });
       }
     });
 
