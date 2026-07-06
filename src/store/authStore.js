@@ -7,7 +7,7 @@ export const useAuthStore = create((set) => ({
   loading: true, // Ubah ke true agar tidak langsung redirect saat refresh
   error: null,
 
-  login: async (email, password) => {
+  login: async (email, password, force = false) => {
     set({ loading: true, error: null });
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -19,7 +19,7 @@ export const useAuthStore = create((set) => ({
 
       let { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, current_session_token')
         .eq('id', authData.user.id)
         .single();
 
@@ -39,6 +39,11 @@ export const useAuthStore = create((set) => ({
 
       const role = profileData?.role || (authData.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic');
       
+      if (!force && profileData?.current_session_token) {
+        set({ loading: false });
+        return { requireForce: true, user: authData.user, role };
+      }
+
       const sessionToken = crypto.randomUUID();
       localStorage.setItem('ws_session_token', sessionToken);
       
