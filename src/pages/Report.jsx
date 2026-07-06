@@ -54,15 +54,15 @@ export default function Report() {
 
   return (
     <VerifikatorLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Laporan & Invoice</h1>
-        <p className="text-gray-500 mt-1">Daftar riwayat pengerjaan yang sudah selesai (LUNAS).</p>
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Laporan & Invoice</h1>
+        <p className="text-gray-500 mt-1 text-sm">Daftar riwayat pengerjaan yang sudah selesai (LUNAS).</p>
       </div>
 
       <div className="bg-white border border-gray-200">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-[#FAFAFA]">
-          <div className="flex space-x-4">
-            <div className="relative w-72">
+        <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row md:justify-between md:items-center gap-3 bg-[#FAFAFA]">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
               <input 
                 type="text" 
@@ -73,7 +73,7 @@ export default function Report() {
               />
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex gap-2">
               <select 
                 value={filterType}
                 onChange={(e) => {
@@ -92,7 +92,7 @@ export default function Report() {
                   type="date" 
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
+                  className="flex-1 md:w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
                 />
               )}
               
@@ -101,7 +101,7 @@ export default function Report() {
                   type="month" 
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
+                  className="flex-1 md:w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
                 />
               )}
               
@@ -112,7 +112,7 @@ export default function Report() {
                   placeholder="Contoh: 2026"
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
-                  className="w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
+                  className="flex-1 md:w-40 px-3 py-2 border border-gray-300 focus:outline-none focus:border-black text-sm text-gray-700"
                 />
               )}
             </div>
@@ -121,13 +121,14 @@ export default function Report() {
           {filterValue && (
             <button 
               onClick={() => setFilterValue('')}
-              className="text-xs text-gray-500 hover:text-black font-medium underline"
+              className="text-xs text-gray-500 hover:text-black font-medium underline self-start md:self-auto"
             >
               Reset Filter
             </button>
           )}
         </div>
         
+        <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr>
@@ -171,6 +172,7 @@ export default function Report() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </VerifikatorLayout>
   );

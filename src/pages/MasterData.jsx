@@ -91,23 +91,23 @@ export default function MasterData() {
 
   return (
     <VerifikatorLayout>
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Master Data</h1>
-          <p className="text-gray-500 mt-1">Kelola kategori dan item sparepart bengkel.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Master Data</h1>
+          <p className="text-gray-500 mt-1 text-sm">Kelola kategori dan item sparepart bengkel.</p>
         </div>
         <button 
           onClick={() => setShowCategoryModal(true)}
-          className="bg-black text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center hover:bg-gray-800 transition-colors"
+          className="bg-black text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center hover:bg-gray-800 transition-colors self-start"
         >
           <Plus className="w-4 h-4 mr-2" />
           Kategori Baru
         </button>
       </div>
 
-      <div className="flex gap-6">
-        {/* Left Column: Categories */}
-        <div className="w-1/3">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+        {/* Kategori: horizontal scroll di mobile, sidebar di desktop */}
+        <div className="w-full md:w-1/3">
           <div className="bg-white border border-gray-200">
             <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-[#FAFAFA]">
               <h2 className="text-lg font-bold text-gray-900">Kategori</h2>
@@ -151,7 +151,7 @@ export default function MasterData() {
         </div>
 
         {/* Right Column: Items */}
-        <div className="w-2/3">
+        <div className="w-full md:w-2/3">
           <div className="bg-white border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-start mb-6">
@@ -181,6 +181,7 @@ export default function MasterData() {
               </div>
             </div>
             
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-[#FAFAFA]">
                 <tr>
@@ -226,6 +227,7 @@ export default function MasterData() {
                 )}
               </tbody>
             </table>
+            </div>
             
             {filteredParts.length > 0 && (
               <div className="p-6 text-center border-t border-gray-200">

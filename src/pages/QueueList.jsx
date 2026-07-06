@@ -112,13 +112,13 @@ export default function QueueList() {
 
   return (
     <VerifikatorLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Antrean Kendaraan</h1>
-        <p className="text-gray-500 mt-1">Kelola dan pantau status pengerjaan kendaraan secara real-time.</p>
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Antrean Kendaraan</h1>
+        <p className="text-gray-500 mt-1 text-sm">Kelola dan pantau status pengerjaan kendaraan secara real-time.</p>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-96">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
+        <div className="relative w-full md:w-96">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
           <input 
             type="text" 
@@ -130,12 +130,12 @@ export default function QueueList() {
         </div>
         
         <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-3">Filter Status:</span>
-          <div className="relative">
+          <span className="text-xs text-gray-500 mr-3 whitespace-nowrap">Filter Status:</span>
+          <div className="relative flex-1 md:flex-none">
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="appearance-none border border-gray-200 py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-black font-medium bg-white"
+              className="appearance-none w-full border border-gray-200 py-2.5 pl-4 pr-10 text-sm focus:outline-none focus:border-black font-medium bg-white"
             >
               <option>Semua Status</option>
               <option>Menunggu Verifikasi</option>
@@ -147,7 +147,7 @@ export default function QueueList() {
         </div>
       </div>
 
-      <div className="bg-white border-t border-b border-gray-200">
+      <div className="bg-white border-t border-b border-gray-200 overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr className="border-b border-gray-200">

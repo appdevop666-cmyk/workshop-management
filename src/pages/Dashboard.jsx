@@ -77,13 +77,13 @@ export default function Dashboard() {
 
   return (
     <VerifikatorLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard Verifikator</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Dashboard Verifikator</h1>
         <p className="text-gray-500 text-sm mt-1">Ringkasan aktivitas operasional bengkel hari ini.</p>
       </div>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
         <div className="bg-white p-6 border border-gray-200">
           <div className="flex justify-between items-start mb-4">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Menunggu Verifikasi</p>
@@ -118,7 +118,7 @@ export default function Dashboard() {
       </div>
       
       {/* Table Section */}
-      <div className="bg-white border border-gray-200 mb-8">
+      <div className="bg-white border border-gray-200 mb-6 md:mb-8">
         <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-[#FAFAFA]">
           <h2 className="text-lg font-bold text-gray-900">Antrean Kendaraan</h2>
           <button className="flex items-center px-3 py-1.5 text-sm font-semibold border border-gray-300 rounded hover:bg-gray-50 transition-colors bg-white">
