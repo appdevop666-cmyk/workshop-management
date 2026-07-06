@@ -52,34 +52,37 @@ export const useAuthStore = create((set) => ({
     set({ user: null, role: null });
   },
 
-  checkSession: async () => {
+  checkSession: () => {
     set({ loading: true });
-    const { data: { session } } = await supabase.auth.getSession();
     
-    if (session?.user) {
-      let { data: profileData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!profileData) {
-        const assignedRole = session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic';
-        const { data: newProfile } = await supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        let { data: profileData } = await supabase
           .from('profiles')
-          .insert([{ id: session.user.id, full_name: session.user.email, role: assignedRole }])
           .select('role')
+          .eq('id', session.user.id)
           .single();
-        profileData = newProfile;
+
+        if (!profileData) {
+          const assignedRole = session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic';
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert([{ id: session.user.id, full_name: session.user.email, role: assignedRole }])
+            .select('role')
+            .single();
+          profileData = newProfile;
+        }
+          
+        set({ 
+          user: session.user, 
+          role: profileData?.role || (session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic'),
+          loading: false 
+        });
+      } else {
+        set({ user: null, role: null, loading: false });
       }
-        
-      set({ 
-        user: session.user, 
-        role: profileData?.role || (session.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic'),
-        loading: false 
-      });
-    } else {
-      set({ user: null, role: null, loading: false });
-    }
+    });
+
+    return () => subscription.unsubscribe();
   }
 }));

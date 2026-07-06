@@ -30,7 +30,12 @@ function App() {
   const checkSession = useAuthStore(state => state.checkSession);
 
   useEffect(() => {
-    checkSession();
+    const unsubscribe = checkSession();
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
   }, [checkSession]);
 
   return (
