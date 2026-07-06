@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 export const useAuthStore = create((set) => ({
   user: null,
   role: null, // 'mechanic', 'verifikator', 'qc'
-  loading: false,
+  loading: true, // Ubah ke true agar tidak langsung redirect saat refresh
   error: null,
 
   login: async (email, password) => {
