@@ -48,6 +48,28 @@ export function useRealtimeNotifications() {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const newProfile = payload.new;
+          if (newProfile.current_session_token) {
+            const localToken = localStorage.getItem('ws_session_token');
+            if (localToken !== newProfile.current_session_token) {
+              // Token mismatch! Someone logged in elsewhere.
+              toast.error('Akun Anda telah login di perangkat lain. Anda akan dikeluarkan.', {
+                duration: 5000,
+                icon: '⚠️'
+              });
+              
+              // Force logout after 2 seconds
+              setTimeout(() => {
+                useAuthStore.getState().logout();
+              }, 2000);
+            }
+          }
+        }
+      )
       .subscribe();
 
     return () => {

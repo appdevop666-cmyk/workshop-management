@@ -39,6 +39,14 @@ export const useAuthStore = create((set) => ({
 
       const role = profileData?.role || (authData.user.email === 'manager@gmail.com' ? 'verifikator' : 'mechanic');
       
+      const sessionToken = crypto.randomUUID();
+      localStorage.setItem('ws_session_token', sessionToken);
+      
+      await supabase
+        .from('profiles')
+        .update({ current_session_token: sessionToken })
+        .eq('id', authData.user.id);
+      
       set({ user: authData.user, role, loading: false });
       return { user: authData.user, role };
     } catch (err) {
@@ -48,6 +56,8 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
+    const state = set; // Not accessible here directly, wait, we can just use the store state later, or we can assume supabase logout is enough
+    localStorage.removeItem('ws_session_token');
     await supabase.auth.signOut();
     set({ user: null, role: null });
   },
@@ -59,7 +69,7 @@ export const useAuthStore = create((set) => ({
       if (session?.user) {
         let { data: profileData } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, current_session_token')
           .eq('id', session.user.id)
           .single();
 
@@ -68,9 +78,18 @@ export const useAuthStore = create((set) => ({
           const { data: newProfile } = await supabase
             .from('profiles')
             .insert([{ id: session.user.id, full_name: session.user.email, role: assignedRole }])
-            .select('role')
+            .select('role, current_session_token')
             .single();
           profileData = newProfile;
+        }
+
+        const localToken = localStorage.getItem('ws_session_token');
+        if (profileData?.current_session_token && localToken !== profileData.current_session_token) {
+          // Token mismatch, someone else logged in
+          await supabase.auth.signOut();
+          localStorage.removeItem('ws_session_token');
+          set({ user: null, role: null, loading: false });
+          return;
         }
           
         set({ 
